@@ -8,12 +8,16 @@
 <hr />
 <h3>Info</h3>
 <p>Name: {{ account.name }}</p>
+<p>User: <a href="{{ account.profile.get_absolute_url }}">
+  {{ account.profile.user.username }}</a>
+</p>
 
 <hr />
 
 <h3>Transactions</h3>
 {% usemacro render_txn_list account.transaction_set.all %}
 <p><a href="{% url wallet.views.transaction.create %}">Add Transaction</a></p>
+<p><a href="{% url wallet.views.upload.upload_statement %}">Upload Transactions</a></p>
 {% endblock %}
 
 {% block navbar %}

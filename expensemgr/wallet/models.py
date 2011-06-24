@@ -1,6 +1,8 @@
 from django.db import models
 from django.core.urlresolvers import reverse
 
+from accounts.models import UserProfile
+
 PARSER_CHOICES = (
     ('BOA', 'Bank of America'),
     ('AMEX', 'American Express'),
@@ -9,6 +11,7 @@ PARSER_CHOICES = (
 class Account(models.Model):
     name = models.CharField(max_length=50)
     parser = models.CharField(max_length=20, choices=PARSER_CHOICES)
+    profile = models.ForeignKey(UserProfile)
 
     def __unicode__(self):
         return self.name

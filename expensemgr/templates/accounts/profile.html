@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>User Profile Page</h1>
+<p>username: {{ profile.user.username }}</p>
+<hr />
+<h3>Accounts</h3>
+<ul>
+{% for account in profile.account_set.all %}
+  <li><a href="{{ account.get_absolute_url }}">{{ account.name }}</a></li>
+{% endfor %}
+</ul>
+
+<hr />
+<p><a href="{% url wallet.views.account.create %}">Create new account</a></p>
+</ul>
+{% endblock %}

@@ -21,6 +21,7 @@ INSTALLED_APPS = (
     'autoload',
     'dbindexer',
     'wallet',
+    'accounts',
 
     # djangoappengine should come last, so it can override a few manage.py commands
     'djangoappengine',
@@ -49,3 +50,5 @@ ADMIN_MEDIA_PREFIX = '/media/admin/'
 TEMPLATE_DIRS = (os.path.join(os.path.dirname(__file__), 'templates'),)
 
 ROOT_URLCONF = 'urls'
+
+AUTH_PROFILE_MODULE = 'accounts.UserProfile'
