@@ -1,0 +1,22 @@
+{% extends "wallet/base.html" %}
+
+{% block content %}
+<h1>Transaction Detail</h1>
+
+<hr />
+<h3>Info</h3>
+<p>Date: {{ transaction.date }}</p>
+<p>Description: {{ transaction.description }}</p>
+<p>Amount: {{ transaction.amount }}</p>
+<p>Account: <a href="{{ transaction.account.get_absolute_url }}">{{ transaction.account.name }}</a></p>
+
+{% endblock %}
+
+{% block navbar %}
+<ul>
+  <li><a href="{% url wallet.views.transaction.create %}">Create</a></li>
+  <li><a href="{% url wallet.views.transaction.list %}">List</a></li>
+  <li><a href="{{ transaction.get_update_url }}">Edit</a></li>
+  <li><a href="{{ transaction.get_delete_url }}">Delete</a></li>
+</ul>
+{% endblock %}

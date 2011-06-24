@@ -1,0 +1,15 @@
+{% extends "wallet/base.html" %}
+{% load macros %}
+{% loadmacros "wallet/utils/transaction.html" %}
+
+{% block content %}
+<h1>Transaction List</h1>
+{% usemacro render_txn_list object_list %}
+{% endblock %}
+
+{% block navbar %}
+<ul>
+  <li><a href="{% url wallet.views.transaction.create %}">Create</a></li>
+  <li><a href="{% url wallet.views.transaction.list %}">List</a></li>
+</ul>
+{% endblock %}

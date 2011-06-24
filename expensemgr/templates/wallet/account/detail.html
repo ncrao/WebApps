@@ -1,0 +1,26 @@
+{% extends "wallet/base.html" %}
+{% load macros %}
+{% loadmacros "wallet/utils/transaction.html" %}
+
+{% block content %}
+<h1>Account Detail</h1>
+
+<hr />
+<h3>Info</h3>
+<p>Name: {{ account.name }}</p>
+
+<hr />
+
+<h3>Transactions</h3>
+{% usemacro render_txn_list account.transaction_set.all %}
+<p><a href="{% url wallet.views.transaction.create %}">Add Transaction</a></p>
+{% endblock %}
+
+{% block navbar %}
+<ul>
+  <li><a href="{% url wallet.views.account.create %}">Create</a></li>
+  <li><a href="{% url wallet.views.account.list %}">List</a></li>
+  <li><a href="{{ account.get_update_url }}">Edit</a></li>
+  <li><a href="{{ account.get_delete_url }}">Delete</a></li>
+</ul>
+{% endblock %}

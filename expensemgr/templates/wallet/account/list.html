@@ -1,0 +1,17 @@
+{% extends "wallet/base.html" %}
+
+{% block content %}
+<h1>Account List</h1>
+<ul>
+  {% for account in object_list %}
+    <li><a href="{{ account.get_absolute_url }}">{{ account.name }}</a></li>
+  {% endfor %}
+</ul>
+{% endblock %}
+
+{% block navbar %}
+<ul>
+  <li><a href="{% url wallet.views.account.create %}">Create</a></li>
+  <li><a href="{% url wallet.views.account.list %}">List</a></li>
+</ul>
+{% endblock %}
