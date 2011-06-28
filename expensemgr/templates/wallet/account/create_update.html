@@ -1,0 +1,16 @@
+{% extends "wallet/base.html" %}
+
+{% block content %}
+<h1>Account Create/Update</h1>
+<form action="" method="post">
+  <p>{{ form.name.label_tag }}: {{ form.name }}</p>
+  <p><input type="submit"></p>
+</form>
+{% endblock %}
+
+{% block navbar %}
+<ul>
+  <li><a href="{% url wallet.views.account.create %}">Create</a></li>
+  <li><a href="{% url wallet.views.account.list %}">List</a></li>
+</ul>
+{% endblock %}

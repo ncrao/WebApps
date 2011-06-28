@@ -1,0 +1,20 @@
+{% extends "wallet/base.html" %}
+
+{% block content %}
+<h1>Account Delete</h1>
+
+<p>Delete account: {{ account.name }}?</p>
+<form action="" method="post">
+  <input type="submit">
+</form>
+
+{% endblock %}
+
+{% block navbar %}
+<ul>
+  <li><a href="{% url wallet.views.account.create %}">Create</a></li>
+  <li><a href="{% url wallet.views.account.list %}">List</a></li>
+  <li><a href="{{ account.get_absolute_url }}">Detail</a></li>
+  <li><a href="{{ account.get_update_url }}">Edit</a></li>
+</ul>
+{% endblock %}
