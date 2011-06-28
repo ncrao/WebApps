@@ -1,4 +1,5 @@
 {% extends "wallet/base.html" %}
+{% loadmacros "wallet/utils/transaction.html" %}
 
 {% block content %}
 <h1>Account Detail</h1>
@@ -10,11 +11,7 @@
 <hr />
 
 <h3>Transactions</h3>
-  {% for txn in account.transaction_set.all %}
-  <ul>
-      <li>{{ txn.description }}</li>
-  </ul>
-  {% endfor %}
+{% usemacro render_txn_list account.transaction_set.all %}
 {% endblock %}
 
 {% block navbar %}

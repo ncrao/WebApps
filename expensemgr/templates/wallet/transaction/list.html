@@ -1,23 +1,9 @@
 {% extends "wallet/base.html" %}
+{% loadmacros "wallet/utils/transactions.html" %}
 
 {% block content %}
 <h1>Transaction List</h1>
-<table width="75%">
-  <tr>
-    <th>Date</th>
-    <th>Description</th>
-    <th>Amount</th>
-    <th>Account</th>
-  </tr>
-  {% for txn in object_list %}
-  <tr>
-    <td>{{ txn.date }}</td>
-    <td><a href="{{ txn.get_absolute_url }}">{{ txn.description }}</a></td>
-    <td>{{ txn.amount }}</td>
-    <td><a href="{{ txn.account.get_absolute_url }}">{{ txn.account.name }}</a></td>
-  </tr>
-  {% endfor %}
-</table>
+{% usemacro render_txn_list object_list %}
 {% endblock %}
 
 {% block navbar %}
