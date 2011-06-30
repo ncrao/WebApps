@@ -10,8 +10,13 @@ COLLECT = 1
 STOP = 2
 
 SECTION_HEADERS = [
-    "Payments and Other Credits",
-    "Purchases and Adjustments",
+    u'Payments and Other Credits',
+    u'Purchases and Adjustments',
+]
+
+PAGE_MARKERS = [
+    u'continued on next page...',
+    u'continuedonnextpage...',
 ]
 
 MIN_ELEMENTS_PER_LINE = 7
@@ -56,9 +61,9 @@ class BOAParser(Parser):
     def is_end_of_page(self, line):
         """Check if we reach the end of the page.
 
-        Pages terminate with "continuedonnextpage...".
+        Pages terminate with one of the phrases in PAGE_MARKERS.
         """
-        if line.strip() == u'continuedonnextpage...':
+        if line.strip() in PAGE_MARKERS:
             return True
         return False
 
