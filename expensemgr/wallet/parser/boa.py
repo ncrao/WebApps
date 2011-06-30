@@ -139,7 +139,7 @@ class BOAParser(Parser):
 
         month, day = parts[0].split('/')
         date = '%s-%s-%s' % (self.year, month, day)
-        amount = float(parts[-1].replace(u'\u2013', '-').replace('$', ''))
+        amount = float(parts[-1].replace(u'\u2013', '-').replace('$', '').replace(',', ''))
         txn_id = parts[-2]
         description = ' '.join(parts[2:-2]).rstrip('0123456789')
 
