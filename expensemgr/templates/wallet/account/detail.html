@@ -13,6 +13,7 @@
 
 <h3>Transactions</h3>
 {% usemacro render_txn_list account.transaction_set.all %}
+<p><a href="{% url wallet.views.transaction.create test=account.name %}">Add Transaction</a></p>
 {% endblock %}
 
 {% block navbar %}
