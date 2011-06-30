@@ -54,7 +54,7 @@ class BOAParser(Parser):
         """
         if len(line.strip().split()) > 1:
             return False
-        if not re.match(u'\u2013?\$\d+\.\d+', line.strip()):
+        if not re.match(u'\u2013?\$[\d\.,]+', line.strip()):
             return False
         return True
 
