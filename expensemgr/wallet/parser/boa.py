@@ -12,6 +12,7 @@ STOP = 2
 SECTION_HEADERS = [
     u'Payments and Other Credits',
     u'Purchases and Adjustments',
+    u'Fees',
 ]
 
 PAGE_MARKERS = [
@@ -30,11 +31,15 @@ class UnknownStateError(Exception):
 class TxnParseError(Exception):
     pass
 
+REPLACE_LIST = dict()
+REPLACE_LIST[150] = '-'
+REPLACE_LIST[174] = ''
+
 class BOAParser(Parser):
     """Parser for BOA transactions."""
 
     def __init__(self, data, year=None, exception_on_parse_error=False,
-                 verbose=False):
+                 verbose=False, replace_list=REPLACE_LIST):
         super(BOAParser, self).__init__(data)
         self.state = INIT
         if not year:
@@ -42,6 +47,8 @@ class BOAParser(Parser):
         self.year = year
         self.exception_on_parse_error = exception_on_parse_error
         self.verbose = verbose
+        # list of non-ascii characters to replace
+        self.replace_list = replace_list
 
     def is_section_header(self, line):
         """Check if a line is a section header."""
@@ -80,6 +87,13 @@ class BOAParser(Parser):
             return True
         return False
 
+    def scrub(self, line):
+        """Replace non-ascii characters with ascii equivalent."""
+        for ch in line:
+            if ord(ch) in self.replace_list:
+                line = line.replace(ch, self.replace_list[ord(ch)])
+        return line
+
     def init_parser(self):
         """Initialize data for BOA transactions.
 
@@ -97,7 +111,7 @@ class BOAParser(Parser):
         - Terminate when you reach end of file.
         """
         self.state = INIT
-        self.data = [unicode(line, 'utf-8') for line in self.data.splitlines()]
+        self.data = [self.scrub(line) for line in self.data.splitlines()]
 
         for line in self.data:
             if self.state == INIT:
@@ -137,7 +151,11 @@ class BOAParser(Parser):
         """
         parts = line.split()
 
-        month, day = parts[0].split('/')
+        try:
+            month, day = parts[0].split('/')
+        except ValueError:
+            print line
+            raise
         date = '%s-%s-%s' % (self.year, month, day)
         amount = float(parts[-1].replace(u'\u2013', '-').replace('$', '').replace(',', ''))
         txn_id = parts[-2]
