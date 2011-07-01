@@ -36,7 +36,7 @@ class BOAParser(Parser):
         parts = line.split(',')
         posted_date = datetime.datetime.strptime(parts[0], '%m/%d/%Y')
         description = parts[2]
-        amount = parts[4]
+        amount = float(parts[4])
 
         # create txn object here. this is not saved in the datastore at this
         # point. the caller is responsible for saving this object.
