@@ -1,180 +1,55 @@
 from wallet.parser.base import Parser
+from wallet.parser.base import DataFormatError
 from wallet.models import Account
 from wallet.models import Transaction
 
 import re
 import datetime
 
-INIT = 0
-COLLECT = 1
-STOP = 2
-
-SECTION_HEADERS = [
-    u'Payments and Other Credits',
-    u'Purchases and Adjustments',
-    u'Fees',
-]
-
-PAGE_MARKERS = [
-    u'continued on next page...',
-    u'continuedonnextpage...',
-]
-
-MIN_ELEMENTS_PER_LINE = 7
-
-class ParseError(Exception):
-    pass
-
-class UnknownStateError(Exception):
-    pass
-
-class TxnParseError(Exception):
-    pass
-
-REPLACE_LIST = dict()
-REPLACE_LIST[150] = '-'
-REPLACE_LIST[174] = ''
+NUM_VALUES_PER_LINE = 5
 
 class BOAParser(Parser):
     """Parser for BOA transactions."""
 
-    def __init__(self, data, year=None, exception_on_parse_error=False,
-                 verbose=False, replace_list=REPLACE_LIST):
-        super(BOAParser, self).__init__(data)
-        self.state = INIT
-        if not year:
-            year = datetime.datetime.now().year
-        self.year = year
-        self.exception_on_parse_error = exception_on_parse_error
-        self.verbose = verbose
-        # list of non-ascii characters to replace
-        self.replace_list = replace_list
-
-    def is_section_header(self, line):
-        """Check if a line is a section header."""
-        return line.strip() in SECTION_HEADERS
-
-    def is_end_of_section(self, line):
-        """Check if a line is the end of a section.
-
-        Sections terminate with a single dollar amount entry.
-        """
-        if len(line.strip().split()) > 1:
-            return False
-        if not re.match(u'\u2013?\$[\d\.,]+', line.strip()):
-            return False
-        return True
-
-    def is_end_of_page(self, line):
-        """Check if we reach the end of the page.
-
-        Pages terminate with one of the phrases in PAGE_MARKERS.
-        """
-        if line.strip() in PAGE_MARKERS:
-            return True
-        return False
-
-    def is_valid_txn(self, line):
-        """Check if a line is a valid transaction."""
-        assert self.state == COLLECT
-        if len(line.strip().split()) < MIN_ELEMENTS_PER_LINE:
-            return False
-        return True
-
-    def can_ignore(self, line):
-        """Ignore certain types of lines such as references."""
-        if len(line.strip()) == 1:
-            return True
-        return False
-
-    def scrub(self, line):
-        """Replace non-ascii characters with ascii equivalent."""
-        for ch in line:
-            if ord(ch) in self.replace_list:
-                line = line.replace(ch, self.replace_list[ord(ch)])
-        return line
+    def __init__(self, data, account_id, debug=False):
+        super(BOAParser, self).__init__(data, account_id)
+        self.debug = debug
 
     def init_parser(self):
         """Initialize data for BOA transactions.
 
-        BOA transactions are a PITA to parse. Steps involved in preparing data:
-        - Ignore all lines until a section header -- i.e. either "Payments and
-          Other Credits" or "Purchases and Adjustments" is seen on the line
-          (and nothing else). A transaction starts on the following line.
-        - Ignore reference numbers (i.e. lines with just one number/entry).
-        - Collect transaction data until we see "continuedonnextpage..." and
-          nothing else on the line.
-        - Ignore lines until you see a section header.
-        - Continue collecting transaction data until you hit a line with only
-          a dollar amount on it. This is the total amount for that section.
-        - Stop parsing until you see another section header.
-        - Terminate when you reach end of file.
+        Parses CSV downloaded BOA statements. You can download these templates
+        from the top-right corner of the account info page.
         """
-        self.state = INIT
-        self.data = [self.scrub(line) for line in self.data.splitlines()]
-
+        self.data = self.data.splitlines()[1:]
         for line in self.data:
-            if self.state == INIT:
-                if self.is_section_header(line):
-                    self.state = COLLECT
-            elif self.state == COLLECT:
-                if self.is_end_of_section(line) or self.is_end_of_page(line):
-                    self.state = STOP
-                elif self.is_valid_txn(line):
-                    self._add_txn_data(line)
-                elif self.can_ignore(line):
-                    continue
-                elif self.exception_on_parse_error:
-                    raise ParseError, line.encode('ascii')
-                elif self.verbose:
-                    print('warning: %s' % line.encode('ascii'))
-            elif self.state == STOP:
-                if self.is_section_header(line):
-                    self.state = COLLECT
-            else:
-                raise UnknownStateError
+            if len(line.split(',')) != NUM_VALUES_PER_LINE:
+                raise DataFormatError
+            self.add_txn_data(line)
 
     def parse_txn(self, line):
         """Parse a transaction.
 
-        BOA transactions are not CSV; so this is a little harder to parse. Rules
-        for parsing these transactions:
-        - Use transaction date (instead of posting date) for txn date
-        - Discard posting date
-        - Use the last field as amount
-        - Use the second last field to identify the account
-        - Use the remaining fields as the description. Discard the last few
-          digits in the description (txn reference).
-
-        Example transaction:
-        05/16  05/17  SWATHI TIFFINS    SUNNYVALE    CA0700      8811      13.39
+        BOA transactions are CSV separated and follow the following format:
+        Posted Date,Reference Number,Payee,Address,Amount
         """
-        parts = line.split()
-
-        try:
-            month, day = parts[0].split('/')
-        except ValueError:
-            print line
-            raise
-        date = '%s-%s-%s' % (self.year, month, day)
-        amount = float(parts[-1].replace(u'\u2013', '-').replace('$', '').replace(',', ''))
-        txn_id = parts[-2]
-        description = ' '.join(parts[2:-2]).rstrip('0123456789')
-
-        # lookup account from txn_id
-        #account = Account.objects.get(txn_id=txn_id)
-        account = Account(name='test')
+        parts = line.split(',')
+        posted_date = datetime.datetime.strptime(parts[0], '%m/%d/%Y')
+        description = parts[2]
+        amount = parts[4]
 
         # create txn object here. this is not saved in the datastore at this
         # point. the caller is responsible for saving this object.
-        txn = Transaction(date=date, amount=amount, account=account,
+        txn = Transaction(date=posted_date.strftime('%Y-%m-%d'), amount=amount,
+                          account=self.get_account(debug=self.debug),
                           description=description)
+
         return txn
 
 def test(filename):
     """Define a routine for validation."""
     data = open(filename).read()
-    parser = BOAParser(data)
+    parser = BOAParser(data, 0, debug=True)
 
     def print_txn(txn):
         """Print a transaction."""

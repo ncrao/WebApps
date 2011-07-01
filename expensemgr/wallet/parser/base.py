@@ -1,7 +1,12 @@
+from wallet.models import Account
+
 class UnimplementedVirtualFunctionError(Exception):
     pass
 
 class IncorrectTypeError(Exception):
+    pass
+
+class DataFormatError(Exception):
     pass
 
 class Parser(object):
@@ -15,12 +20,28 @@ class Parser(object):
     returns a list of transaction objects. The caller is responsible for saving
     these objects in the data store.
     """
-    def __init__(self, data):
+    def __init__(self, data, account_id):
         self.data = data
+        self.account_id = account_id
         self.__txn_data = []
+        self.__account = None
 
-    def _add_txn_data(self, line):
+    def add_txn_data(self, line):
+        """Add a transaction entry to be parsed."""
         self.__txn_data.append(line)
+
+    def __get_account(self, debug):
+        if debug:
+            self.__account = Account(name='True')
+        else:
+            self.__account = Account.objects.get(account_id=self.account_id)
+        return self.__account
+
+    def get_account(self, debug=False):
+        """Return the account for transactions."""
+        if self.__account:
+            return self.__account
+        return self.__get_account(debug)
 
     def init_parser(self):
         """Initialize parser."""
