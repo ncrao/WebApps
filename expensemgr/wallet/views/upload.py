@@ -24,4 +24,6 @@ def upload_statement(request):
     else:
         form = UploadForm()
 
-    return render_to_response('upload.html', { 'form': form })
+    return render_to_response('wallet/upload.html', {
+        'form': form,
+    })
