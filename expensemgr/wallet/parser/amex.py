@@ -2,6 +2,7 @@ from wallet.parser.base import Parser
 from wallet.parser.base import DataFormatError
 from wallet.models import Account
 from wallet.models import Transaction
+from wallet.parser.base import register_parser_type
 
 import re
 import datetime
@@ -10,6 +11,7 @@ NUM_VALUES_PER_LINE = 14
 
 class AmexParser(Parser):
     """Parser for Amex transactions."""
+    parser_id = 'AMEX'
 
     def __init__(self, data, account_id, debug=False):
         super(AmexParser, self).__init__(data, account_id)
@@ -24,7 +26,7 @@ class AmexParser(Parser):
         self.data = self.data.splitlines()
         for line in self.data:
             if len(line.split(',')) != NUM_VALUES_PER_LINE:
-                raise DataFormatError
+                raise DataFormatError, line
             self.add_txn_data(line)
 
     def parse_txn(self, line):
@@ -36,7 +38,7 @@ class AmexParser(Parser):
         parts = line.split(',')
         posted_date = datetime.datetime.strptime(parts[0].split()[0], '%m/%d/%Y')
         description = parts[2]
-        amount = float(parts[7])
+        amount = parts[7]
 
         # create txn object here. this is not saved in the datastore at this
         # point. the caller is responsible for saving this object.
@@ -45,6 +47,8 @@ class AmexParser(Parser):
                           description=description)
 
         return txn
+
+register_parser_type(AmexParser.parser_id, AmexParser)
 
 def test(filename):
     """Define a routine for validation."""

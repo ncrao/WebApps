@@ -11,5 +11,5 @@ urlpatterns = patterns('wallet.views',
     ('^transaction/detail/(?P<object_id>\d+)/$', 'transaction.detail'),
     ('^transaction/delete/(?P<object_id>\d+)/$', 'transaction.delete'),
     ('^transaction/update/(?P<object_id>\d+)/$', 'transaction.update'),
-
+    ('^upload/$', 'upload.upload_statement'),
 )

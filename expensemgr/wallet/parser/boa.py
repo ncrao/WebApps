@@ -2,6 +2,7 @@ from wallet.parser.base import Parser
 from wallet.parser.base import DataFormatError
 from wallet.models import Account
 from wallet.models import Transaction
+from wallet.parser.base import register_parser_type
 
 import re
 import datetime
@@ -10,6 +11,7 @@ NUM_VALUES_PER_LINE = 5
 
 class BOAParser(Parser):
     """Parser for BOA transactions."""
+    parser_id = 'BOA'
 
     def __init__(self, data, account_id, debug=False):
         super(BOAParser, self).__init__(data, account_id)
@@ -33,10 +35,10 @@ class BOAParser(Parser):
         BOA transactions are CSV separated and follow the following format:
         Posted Date,Reference Number,Payee,Address,Amount
         """
-        parts = line.split(',')
+        parts = map(lambda l:l.strip(' "'), line.split(','))
         posted_date = datetime.datetime.strptime(parts[0], '%m/%d/%Y')
         description = parts[2]
-        amount = float(parts[4])
+        amount = parts[4]
 
         # create txn object here. this is not saved in the datastore at this
         # point. the caller is responsible for saving this object.
@@ -45,6 +47,8 @@ class BOAParser(Parser):
                           description=description)
 
         return txn
+
+register_parser_type(BOAParser.parser_id, BOAParser)
 
 def test(filename):
     """Define a routine for validation."""

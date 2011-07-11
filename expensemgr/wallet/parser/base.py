@@ -9,6 +9,27 @@ class IncorrectTypeError(Exception):
 class DataFormatError(Exception):
     pass
 
+class ParserNotFoundError(Exception):
+    pass
+
+parsers = dict()
+
+def register_parser_type(parser_id, parser_class):
+    """Register a parser class."""
+    global parsers
+    parsers[parser_id] = parser_class
+
+def ParserFactory(parser_id, data, account):
+    """Function to create a parser for parser_id.
+
+    Create a parser object with the class variable parser_id. If the parser is
+    not found it raises ParserNotFoundError.
+    """
+    parser_class = parsers.get(parser_id, None)
+    if not parser_class:
+        raise ParserNotFoundError
+    return parser_class(data, account)
+
 class Parser(object):
     """Class to parse exported data.
 
@@ -20,28 +41,20 @@ class Parser(object):
     returns a list of transaction objects. The caller is responsible for saving
     these objects in the data store.
     """
-    def __init__(self, data, account_id):
+    def __init__(self, data, account):
         self.data = data
-        self.account_id = account_id
+        self.account = account
         self.__txn_data = []
-        self.__account = None
 
     def add_txn_data(self, line):
         """Add a transaction entry to be parsed."""
         self.__txn_data.append(line)
 
-    def __get_account(self, debug):
-        if debug:
-            self.__account = Account(name='True')
-        else:
-            self.__account = Account.objects.get(account_id=self.account_id)
-        return self.__account
-
     def get_account(self, debug=False):
         """Return the account for transactions."""
-        if self.__account:
-            return self.__account
-        return self.__get_account(debug)
+        if debug:
+            self.account = Account(name='Test')
+        return self.account
 
     def init_parser(self):
         """Initialize parser."""
